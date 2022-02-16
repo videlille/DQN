@@ -2,7 +2,6 @@ import cv2
 import gym
 import gym.spaces
 import numpy as np
-
 import collections
 
 
@@ -56,9 +55,6 @@ class MaxAndSkipEnv(gym.Wrapper):
 
 
 class ProcessFrame84(gym.ObservationWrapper):
-    '''The goal of this wrapper is to convert input observations from the emulator, which
-normally has a resolution of 210×160 pixels with RGB color channels, to a grayscale
-84×84 image'''
     def __init__(self, env=None):
         super(ProcessFrame84, self).__init__(env)
         self.observation_space = gym.spaces.Box(
@@ -71,10 +67,10 @@ normally has a resolution of 210×160 pixels with RGB color channels, to a grays
     def process(frame):
         if frame.size == 210 * 160 * 3:
             img = np.reshape(frame, [210, 160, 3]).astype(
-                np.uint8)
+                np.float32)
         elif frame.size == 250 * 160 * 3:
             img = np.reshape(frame, [250, 160, 3]).astype(
-                np.uint8)
+                np.float32)
         else:
             assert False, "Unknown resolution."
         img = img[:, :, 0] * 0.299 + img[:, :, 1] * 0.587 + \
@@ -87,30 +83,23 @@ normally has a resolution of 210×160 pixels with RGB color channels, to a grays
 
 
 class ImageToPyTorch(gym.ObservationWrapper):
-    '''This simple wrapper changes the shape of the observation from HWC (height, width,
-channel) to the CHW (channel, height, width) format required by PyTorch'''
     def __init__(self, env):
         super(ImageToPyTorch, self).__init__(env)
         old_shape = self.observation_space.shape
         new_shape = (old_shape[-1], old_shape[0], old_shape[1])
         self.observation_space = gym.spaces.Box(
-            low=0.0, high=1.0, shape=new_shape, dtype=np.uint8)
+            low=0.0, high=1.0, shape=new_shape, dtype=np.float32)
 
     def observation(self, observation):
         return np.moveaxis(observation, 2, 0)
 
 
 class ScaledFloatFrame(gym.ObservationWrapper):
-    '''The final wrapper we have in the library converts observation data from bytes to
-floats, and scales every pixel's value to the range [0.0...1.0].'''
     def observation(self, obs):
         return np.array(obs).astype(np.float32) / 255.0
 
 
 class BufferWrapper(gym.ObservationWrapper):
-    '''This class creates a stack of subsequent frames along the first dimension and returns
-them as an observation. The purpose is to give the network an idea about the
-dynamics of the objects'''
     def __init__(self, env, n_steps, dtype=np.uint8):
         super(BufferWrapper, self).__init__(env)
         self.dtype = dtype
@@ -137,5 +126,4 @@ def make_env(env_name):
     env = ProcessFrame84(env)
     env = ImageToPyTorch(env)
     env = BufferWrapper(env, 4)
-    #return ScaledFloatFrame(env)
-    return env
+    return env #ScaledFloatFrame(env)
