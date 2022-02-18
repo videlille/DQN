@@ -60,7 +60,8 @@ if __name__ == "__main__":
     epsilon_tracker = common.EpsilonTracker(selector, params)
     agent = ptan.agent.DQNAgent(net, selector, device=device)
 
-alc_values_of_states
+    exp_source = ptan.experience.ExperienceSourceFirstLast(
+        env, agent, gamma=params.gamma)
     buffer = dqn_extra.PrioReplayBuffer(
         exp_source, params.replay_size, PRIO_REPLAY_ALPHA)
     optimizer = optim.Adam(net.parameters(), lr=params.learning_rate)

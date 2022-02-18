@@ -1,20 +1,7 @@
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
-
 import numpy as np
 
-def initialize_weights(m):
-  if isinstance(m, nn.Conv2d):
-      nn.init.kaiming_uniform_(m.weight.data,nonlinearity='relu')
-      if m.bias is not None:
-          nn.init.constant_(m.bias.data, 0)
-  elif isinstance(m, nn.BatchNorm2d):
-      nn.init.constant_(m.weight.data, 1)
-      nn.init.constant_(m.bias.data, 0)
-  elif isinstance(m, nn.Linear):
-      nn.init.kaiming_uniform_(m.weight.data)
-      nn.init.constant_(m.bias.data, 0)
 
 class DQN(nn.Module):
     def __init__(self, input_shape, n_actions):
@@ -37,10 +24,9 @@ class DQN(nn.Module):
         )
 
     def _get_conv_out(self, shape):
-        o = self.conv(Variable(torch.zeros(1, *shape)))
+        o = self.conv(torch.zeros(1, *shape))
         return int(np.prod(o.size()))
 
     def forward(self, x):
-        fx = x.float() / 256
-        conv_out = self.conv(fx).view(fx.size()[0], -1)
+        conv_out = self.conv(x).view(x.size()[0], -1)
         return self.fc(conv_out)
