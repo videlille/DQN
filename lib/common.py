@@ -30,7 +30,7 @@ class Agent:
         self._reset()
 
     def _reset(self):
-        self.state = env.reset()
+        self.state = self.env.reset()
         self.total_reward = 0.0
 
     def play_step(self, net, epsilon=0.0, device="cpu"):
